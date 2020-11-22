@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="621" height="72" src="https://github.com/frankvalbuena/Boundaries/blob/master/Documentation/logo.jpg">
+  <img width="621" height="72" src="https://github.com/frankvalbuena/Boundaries/blob/master/docs/logo.jpg">
 </p>
 
 Boundaries is a lightweight framework for creating [source-level boundaries in swift](https://medium.com/@frankvalbuenam/source-level-boundaries-in-swift-e97027abcb1e). It's based on the premise that for enforcing source level boundaries you need to manage the object graph construction based on boundary crossing rules. This framework is useful whether your app is modularized or whether you have all the code under a single module. This is because packages are only a mechanism for deploying and reusing code, but you still need to manage the source code dependencies and handling the object graph construction, for having real boundaries in your code. 
@@ -8,7 +8,7 @@ The framework is designed to be as unintrusive as possible, it won't pollute you
 
 The main propose of the framework is to enfoce boundaries and with them your chosen architecture. This implies having a framework that doesn't imply too much compromise on your code. It doesn't enforces any particular architectural pattern, but rather gives you a tool for helping on the implementation by enforcing your boundaries directly on code.
 
-There's an example app that was easily refactored with this framework [here](https://github.com/frankvalbuena/iOS-Clean-Architecture-Example). You will notice that the number of imports of the framework is reduced to the files definining the boundaries. The 99% of the code remained untouched.
+There's an example app that was easily refactored with this framework [here](https://github.com/frankvalbuena/iOS-Clean-Architecture-Example). You will notice that the number of imports of the framework is reduced to the files definining the boundaries. The 99% of the code remained untouched. Look in the [reference](https://frankvalbuena.github.io/Boundaries/) for a more detailed documentation.
 
 ## Instalation
 
@@ -39,7 +39,7 @@ A boundary can be seen as a factory for objects. For declaring a boundary you cr
 ```swift
 import Boundaries
 
-// A boundary for the Model Layer. Every boundary must be a class inheraing from Boundary 
+// A boundary for the Model Layer. Every boundary must be a class inheriting from Boundary 
 final class ModelBoundary: Boundary {
     // By declaring this as a computed property a new object will be created every time this object is requested.
     var profileValidator: ProfileValidator {
@@ -65,17 +65,17 @@ final class ModelBoundary: Boundary {
 }
 ```
 
-In the example above `ModelBoundary` is declared as a subclass of Boundary. You can declare properties for each object constructed inside the boundary. Use a stored property if you want to have a single instance or a computed property if you want to create a new one on demand. Also notice that the required initializer prevents you from directly instantiating your boundary. This decision was made on propose, as a way to prevent your boundary to become singletons, which is an [antipattern](https://www.youtube.com/watch?v=-FRm3VPhseI&t=36s) widely used by dependency containers. Instead a boundary must be always initialized by a Container which is meant to build the Boundary Graph.
+In the example above `ModelBoundary` is declared as a subclass of Boundary. You can declare properties for each object constructed inside the boundary. Use a stored property if you want to have a single instance or a computed property if you want to create a new one on demand. Also notice that the required initializer prevents you from directly instantiating your boundary. This decision was made on purpose, as a way to prevent your boundary to become singletons, which is an [antipattern](https://www.youtube.com/watch?v=-FRm3VPhseI&t=36s) widely used by dependency containers. Instead a boundary must be always initialized by a Container which is meant to build the Boundary Graph.
 
 ## Dependencies
 
-Each boundary must create objects related to a single area of concern, like a Layer, a Feature, etc. You define the propose of your boundary. Boundaries collaborate between them, in the same way layers or components are structured to form a collaborative system together. 
+Each boundary must create objects related to a single area of concern, like a Layer, a Feature, etc. You define the purpose of your boundary. Boundaries collaborate between them, in the same way layers or components are structured to form a collaborative system together. 
 
 On the previous example, let's create a boundary for a Presenter Layer, which depends on `ModelBoundary`. This is done in 2 steps:
 
 ### Input Ports: 
 
-On the Dependee Boundary, in this example the `ModelBoundary`, declare the properties meant to be accesible from outside of the Boundary with the generic type `InputPort`.
+On the Dependee Boundary, in this example the `ModelBoundary`, declare the properties meant to be accessible from outside of the Boundary with the generic type `InputPort`.
 
 
 ```Swift
@@ -98,7 +98,7 @@ On the Dependent Boundary, in this example `PresenterBoundary`, link the Depende
 typealias Dependencies = BoundaryList.Add<THE_DEPENDEE_BOUNDARY_HERE>
 ```
 
-This makes all the input ports of `ModelBoundary` accesible for `PresenterBoundary`, via the dependencies property inherited from `Boundary`. See the example below:
+This makes all the input ports of `ModelBoundary` accessible for `PresenterBoundary`, via the dependencies property inherited from `Boundary`. See the example below:
 
 
 ```Swift
@@ -122,7 +122,7 @@ Notice that only by declaring the typealias you can access the input ports of Mo
 
 ## Plugins
 
-Another way to declare dependencies is by using [dependency inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle). So instead of depending on a existing boundary, the boundary itself can define an abstract boundary that can be implemented by other boundary. The benefit of doing this ofcourse is that you avoid depending on especific boundaries, making your boundaries independently deployable. This is usually called [Plugin Architecture](https://en.wikipedia.org/wiki/Plug-in_(computing)).
+Another way to declare dependencies is by using [dependency inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle). So instead of depending on a existing boundary, the boundary itself can define an abstract boundary that can be implemented by other boundary. The benefit of doing this of course is that you avoid depending on especific boundaries, making your boundaries independently deployable. This is usually called [Plugin Architecture](https://en.wikipedia.org/wiki/Plug-in_(computing)).
 
 On the previous example let's create a plugin for handling the persistence and webservices for the `ModelBoundary`. You can do this in 2 steps:
 
@@ -157,17 +157,17 @@ final class ModelBoundary: Boundary {
 
 ### Plugin Adapters
 
-Now that you have declared your plugin, you must implement it by an Adapter Boundary.  Let's create a services layer acting as an adapter for the ModelBoundary's Plugin. In order for doing this, you define a new boundary inheriting from `AdapterBoundary` like this:
+Now that you have declared your plugin, you must implement it by an Adapter Boundary.  Let's create a services layer acting as an adapter for the ModelBoundary's Plugin. In order to do this, you define a new boundary inheriting from `AdapterBoundary` like this:
 
 ```swift
 final class Service: AdapterBoundary {
     // This part of the AdapterBoundary, you must define a typealias of the plugin you are implementing.
     typealias PluginAdaptee = ModelBoundary.Plugin
-    // In order for implementing this you may need to depend on other boundary.
+    // In order to implement this you may need to depend on other boundary.
     typealias Dependencies = BoundaryList.Add<AFrameworkRelatedBoundary>
     
     // This function is part of AdapterBoundary. This is the place where you create the plugin implementation.
-    func makePlugin() -> UseCase.Plugin {
+    func makePlugin() -> ModelBoundary.Plugin {
         // Create the input ports of the plugins, providing the implementation.
         return ModelBoundary.Plugin(
             paymentPersistence: makeInputPort(implementation: CoreDataPaymentPersistence()),
@@ -236,7 +236,7 @@ As you can see Container Boundaries give you a big power for composing boundarie
 
 ## Root Boundary
 
-`RootBoundary` is just a subclass of a Container boundary, the only difference is that the root boundary can be built by you root object, in iOS for instance that root object would be the AppDelegate. Following the same example, we can create an Application Boundary inheriting from  `RootBoundary` with the feature boundaries of the app. (See the Container Boundary section for an example). Finally you can create an instance of the root boundary and start your app, always retain the root boundary as it contains the boundary graph, and each boundary can contain objects. See the example below:
+`RootBoundary` is just a subclass of a Container boundary, the only difference is that the root boundary can be built by your root object, in iOS for instance that root object would be the AppDelegate. Following the same example, we can create an Application Boundary inheriting from  `RootBoundary` with the feature boundaries of the app. (See the Container Boundary section for an example). Finally you can create an instance of the root boundary and start your app, always retain the root boundary as it contains the boundary graph, and each boundary can contain objects. See the example below:
 
 ```swift
 
@@ -252,7 +252,7 @@ final class ApplicationBoundary: RootBoundary {
         return makeInputPort(implementation: self.navigationBoundary.launchView)
     }
     
-    // In here create your subboundaries using the resolver API... look the Container Boundary for knowing how to do this.
+    // In here create your subboundaries using the resolver API... look at the Container Boundary to know how to do this.
     var navigationBoundary: NavigationBoundary.Resolved {
         //... create your subboundary.
     }
